@@ -1,1 +1,82 @@
-Soyez Les bienvenue 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avenir Capital - Tableau de bord</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h1 {
+            font-size: 24px;
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .balance-card h2 {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .balance-card .amount {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .btn:active {
+            background: #1557b0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Avenir Capital</h1>
+        <p>Bienvenue sur votre espace financier sécurisé.</p>
+
+        <div class="balance-card">
+            <h2>Solde du compte</h2>
+            <div class="amount">250 000 XOF</div>
+        </div>
+
+        <button class="btn" onclick="alert('Fonctionnalité de transfert bientôt disponible !')">Effectuer un transfert</button>
+    </div>
+
+</body>
+</html>
