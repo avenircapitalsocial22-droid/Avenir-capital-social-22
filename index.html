@@ -14,53 +14,134 @@
         body {
             background-color: #f4f6f9;
             color: #333;
-            padding: 20px;
+            padding: 15px;
         }
         .container {
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
             background: #ffffff;
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         h1 {
-            font-size: 24px;
+            font-size: 22px;
             color: #1a73e8;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
         }
         .balance-card {
             background: linear-gradient(135deg, #1a73e8, #0d47a1);
             color: white;
             padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            border-radius: 12px;
+            margin-bottom: 20px;
         }
         .balance-card h2 {
-            font-size: 14px;
+            font-size: 13px;
             opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .balance-card .amount {
             font-size: 28px;
             font-weight: bold;
-            margin-top: 5px;
+            margin-top: 8px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #333;
+        }
+        .operators {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .op-btn {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .op-btn:hover {
+            background: #e8f0fe;
+            border-color: #1a73e8;
+            color: #1a73e8;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #1a73e8;
         }
         .btn {
             display: block;
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: #1a73e8;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            margin-top: 15px;
         }
         .btn:active {
             background: #1557b0;
+        }
+        .transactions {
+            margin-top: 25px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .tx-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f9fa;
+            font-size: 14px;
+        }
+        .tx-info span {
+            display: block;
+            font-size: 12px;
+            color: #888;
+        }
+        .tx-amount.red {
+            color: #d93025;
+            font-weight: bold;
+        }
+        .tx-amount.green {
+            color: #188038;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -68,15 +149,101 @@
 
     <div class="container">
         <h1>Avenir Capital</h1>
-        <p>Bienvenue sur votre espace financier sécurisé.</p>
+        <p class="subtitle">Espace financier sécurisé</p>
 
+        <!-- Solde -->
         <div class="balance-card">
             <h2>Solde du compte</h2>
-            <div class="amount">250 000 XOF</div>
+            <div class="amount" id="balanceDisplay">250 000 XOF</div>
         </div>
 
-        <button class="btn" onclick="alert('Fonctionnalité de transfert bientôt disponible !')">Effectuer un transfert</button>
+        <!-- Opérateurs / Mobile Money -->
+        <div class="section-title">Services de Paiement</div>
+        <div class="operators">
+            <div class="op-btn" onclick="selectOperator('Wave')">Wave</div>
+            <div class="op-btn" onclick="selectOperator('Orange Money')">Orange Money</div>
+            <div class="op-btn" onclick="selectOperator('MTN Money')">MTN Money</div>
+            <div class="op-btn" onclick="selectOperator('Moov Money')">Moov Money</div>
+        </div>
+
+        <!-- Formulaire de Transfert -->
+        <div class="section-title">Effectuer un transfert</div>
+        <div class="form-group">
+            <label>Opérateur sélectionné</label>
+            <input type="text" id="selectedOp" value="Wave" readonly style="background-color: #f8f9fa; color: #555;">
+        </div>
+        <div class="form-group">
+            <label>Numéro de téléphone / Destinataire</label>
+            <input type="text" id="phoneInput" placeholder="Ex: +228 / +225 ...">
+        </div>
+        <div class="form-group">
+            <label>Montant (XOF)</label>
+            <input type="number" id="amountInput" placeholder="Ex: 10000">
+        </div>
+
+        <button class="btn" onclick="effectuerTransfert()">Envoyer l'argent</button>
+
+        <!-- Historique -->
+        <div class="transactions">
+            <div class="section-title">Dernières transactions</div>
+            <div id="txList">
+                <div class="tx-item">
+                    <div class="tx-info">
+                        <strong>Dépôt initial</strong>
+                        <span>02 Nov 2026</span>
+                    </div>
+                    <div class="tx-amount green">+250 000 XOF</div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script>
+        let currentBalance = 250000;
+        let chosenOperator = "Wave";
+
+        function selectOperator(opName) {
+            chosenOperator = opName;
+            document.getElementById('selectedOp').value = opName;
+        }
+
+        function effectuerTransfert() {
+            const phone = document.getElementById('phoneInput').value;
+            const amount = parseInt(document.getElementById('amountInput').value);
+
+            if (!phone || !amount || amount <= 0) {
+                alert("Veuillez remplir correctement tous les champs.");
+                return;
+            }
+
+            if (amount > currentBalance) {
+                alert("Solde insuffisant pour effectuer ce transfert.");
+                return;
+            }
+
+            // Mettre à jour le solde
+            currentBalance -= amount;
+            document.getElementById('balanceDisplay').innerText = currentBalance.toLocaleString() + " XOF";
+
+            // Ajouter à l'historique
+            const txList = document.getElementById('txList');
+            const newTx = document.createElement('div');
+            newTx.className = "tx-item";
+            newTx.innerHTML = `
+                <div class="tx-info">
+                    <strong>Transfert ${chosenOperator} (${phone})</strong>
+                    <span>À l'instant</span>
+                </div>
+                <div class="tx-amount red">-${amount.toLocaleString()} XOF</div>
+            `;
+            txList.prepend(newTx);
+
+            // Réinitialiser les champs
+            document.getElementById('phoneInput').value = "";
+            document.getElementById('amountInput').value = "";
+
+            alert("Transfert effectué avec succès via " + chosenOperator + " !");
+        }
+    </script>
 </body>
 </html>
