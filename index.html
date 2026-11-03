@@ -49,7 +49,7 @@ nav span{display:block;font-size:20px;margin-bottom:2px}
 const WAVE_NUM = "0509302107";
 const MOOV_NUM = "0104217547";
 const MTN_NUM  = "0545576710";
-const JEKO_LINK = "https://jeko.pay/avenir-capital"; 
+const JEKO_LINK = "https://pay.jeko.africa/pl/4f580acc-5df9-440e-b168-6beb65823bea"; 
 const SUPPORT  = "https://wa.me/message/ABZ2BRFJPVIOE1";
 const BONUS_PREMIUM = 350000;
 const INVITATION_CODE = "https://avenircapitalsocial22-droid.github.io/Avenir-capital-social-22/";
@@ -191,7 +191,7 @@ method: () => `${back("recharge")}<h2>Choisir le mode de paiement</h2>
 <button class="li wave" onclick="go('pay', {m:'Wave', num:'${WAVE_NUM}'})"><b>Wave</b><span>›</span></button>
 <button class="li" onclick="go('pay', {m:'MTN Money', num:'${MTN_NUM}'})"><b>MTN Money</b><span>›</span></button>
 <button class="li" onclick="go('pay', {m:'Moov Money', num:'${MOOV_NUM}'})"><b>Moov Money</b><span>›</span></button>
-<a class="btn jeko" style="display:block;margin-top:10px;text-align:center;text-decoration:none" href="${JEKO_LINK}" target="_blank">🔗 Payer directement avec Jeko</a>`,
+<a class="btn jeko" style="display:block;margin-top:10px;text-align:center;text-decoration:none" href="${JEKO_LINK}" target="_blank">🔗 Veuillez payer pour Avenir avec Jeko</a>`,
 
 pay: () => `${back("method")}<h2>Paiement par ${T.m}</h2>
 <div class="card">
@@ -199,9 +199,11 @@ pay: () => `${back("method")}<h2>Paiement par ${T.m}</h2>
   <div class="card" style="background:var(--bg);text-align:center">
     <div class="row" style="align-items:center;justify-content:center;gap:12px;">
       <div class="num" style="margin:0">${T.num}</div>
-      <a class="btn jeko" style="width:auto;padding:8px 12px;font-size:13px;text-decoration:none;" href="${JEKO_LINK}" target="_blank">🔗 Payer Jeko</a>
     </div>
-    <button class="btn sec btn-sm" style="width:auto;margin-top:10px;padding:8px 16px" onclick="copyN('${T.num}')">Copier le numéro</button>
+    <div class="row" style="align-items:center;justify-content:center;gap:8px;margin-top:10px;">
+      <button class="btn sec btn-sm" style="width:auto;padding:8px 16px" onclick="copyN('${T.num}')">Copier le numéro</button>
+      <a class="btn jeko" style="width:auto;padding:8px 14px;font-size:13px;text-decoration:none;" href="${JEKO_LINK}" target="_blank">🔗 Veuillez payer pour Avenir</a>
+    </div>
   </div>
   <label>Votre numéro de paiement (expéditeur)</label><input id="pn" type="tel" placeholder="Ex: 0708091011">
   <label>ID de transaction / Référence</label><input id="tx" placeholder="Ex: Tx12345678">
