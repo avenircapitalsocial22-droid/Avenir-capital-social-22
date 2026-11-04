@@ -146,7 +146,7 @@ function go(p, t){ P = p; if(t) Object.assign(T, t); render(); scrollTo(0,0); }
 function err(m){ const e = document.getElementById("err"); if(e) e.textContent = m; }
 
 const back = (p="home") => `<button class="back" onclick="go('${p}')">‹ Retour</button>`;
-const hist = (a, empty) => a.length ? a.map(x => `<div class="card row"><div><b>${F(x.a)}</b><div class="mu">${x.m} · ${x.t}</div></div><span class="tag">${x.s||"En attente"}</span></div>`).join("") : `<p class="mu">${empty}</p>`;
+const hist = (a, empty) => a.length ? a.map(x => `<div class="card row"><div><b>${F(x.a)}</b><div class="mu">${x.m} · ${x.t}</div></div><span class="tag" style="background:rgba(245,158,11,0.2);color:var(--gold);">${x.s||"En attente"}</span></div>`).join("") : `<p class="mu">${empty}</p>`;
 
 window.copyN = function(num){
   navigator.clipboard.writeText(num).then(() => alert("✅ Numéro copié !")).catch(() => alert(num));
@@ -251,12 +251,12 @@ manual: () => `${back()}<h2>📖 Manuel d'utilisation & Réclamation</h2>
   <div class="manual-step"><div class="manual-num">1</div><div class="mu">Allez sur l'accueil et cliquez sur le bouton <b>Recharger</b>.</div></div>
   <div class="manual-step"><div class="manual-num">2</div><div class="mu">Entrez le montant souhaité (minimum 1 000 F) ou choisissez un montant rapide.</div></div>
   <div class="manual-step"><div class="manual-num">3</div><div class="mu">Sélectionnez votre moyen de paiement (Wave, MTN Money, Moov Money ou Jeko).</div></div>
-  <div class="manual-step"><div class="manual-num">4</div><div class="mu">Effectuez le transfert vers le numéro indiqué, puis entrez votre numéro d'expéditeur et la référence de transaction pour confirmer.</div></div>
+  <div class="manual-step"><div class="manual-num">4</div><div class="mu">Effectuez le transfert vers le numéro indiqué, puis entrez votre numéro d'expéditeur et la référence de transaction pour soumettre. La recharge restera en attente jusqu'à validation par l'administrateur.</div></div>
 </div>
 
 <div class="card">
   <h3 style="color:var(--pr);margin-bottom:8px">2. Comment acheter un plan (Sac) ?</h3>
-  <div class="manual-step"><div class="manual-num">1</div><div class="mu">Vérifiez que votre solde disponible est suffisant.</div></div>
+  <div class="manual-step"><div class="manual-num">1</div><div class="mu">Vérifiez que votre solde disponible (crédité après validation de votre recharge par l'admin) est suffisant.</div></div>
   <div class="manual-step"><div class="manual-num">2</div><div class="mu">Cliquez sur l'onglet <b>Investir</b> en bas de l'écran.</div></div>
   <div class="manual-step"><div class="manual-num">3</div><div class="mu">Choisissez le plan VIP de votre choix (ex: VIP1 à 5 000 F) et cliquez sur <b>Investir maintenant</b>.</div></div>
 </div>
@@ -386,7 +386,7 @@ function logout(){
 
 function buy(i){
   const v = VIP[i];
-  if(currentUser.bal < v.p) return err("Solde insuffisant. Rechargez votre compte.");
+  if(currentUser.bal < v.p) return err("Solde insuffisant. Veuillez recharger votre compte et attendre la validation de l'administrateur.");
   
   currentUser.bal -= v.p;
   setStorage("ac_user", currentUser);
@@ -417,13 +417,10 @@ function confirmPay(){
   const p = $("pn"), t = $("tx");
   if(p.length < 8 || !t) return err("Veuillez remplir tous les champs de paiement.");
   
-  recs.unshift({ a: T.amt, m: T.m, t: D(), s: "Validé" });
+  recs.unshift({ a: T.amt, m: T.m, t: D(), s: "En attente" });
   setStorage("ac_recs", recs);
   
-  currentUser.bal += T.amt;
-  setStorage("ac_user", currentUser);
-  
-  alert("✅ Recharge validée avec succès !");
+  alert("⏳ Demande de recharge enregistrée avec succès !\nElle restera en attente jusqu'à validation par l'administrateur.");
   go("home");
 }
 
