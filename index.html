@@ -93,7 +93,7 @@ function canClaimToday() {
   return lastClaim !== todayStr && buys.some(b => (b.joursRestants === undefined ? b.duree : b.joursRestants) > 0);
 }
 
-// 🎁 FONCTION DE RÉCLAMATION MANUELLE DES REVENUS
+// 🎁 FONCTION DE RÉCLAMATION MANUELLE DES REVENUS QUOTIDIENS
 window.claimDailyRevenues = function() {
   if (!currentUser) return;
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -251,7 +251,7 @@ manual: () => `${back()}<h2>📖 Manuel d'utilisation & Réclamation</h2>
   <div class="manual-step"><div class="manual-num">1</div><div class="mu">Allez sur l'accueil et cliquez sur le bouton <b>Recharger</b>.</div></div>
   <div class="manual-step"><div class="manual-num">2</div><div class="mu">Entrez le montant souhaité (minimum 1 000 F) ou choisissez un montant rapide.</div></div>
   <div class="manual-step"><div class="manual-num">3</div><div class="mu">Sélectionnez votre moyen de paiement (Wave, MTN Money, Moov Money ou Jeko).</div></div>
-  <div class="manual-step"><div class="manual-num">4</div><div class="mu">Effectuez le transfert vers le numéro indiqué, puis entrez votre numéro d'expéditeur et la référence de transaction pour soumettre. La recharge restera en attente jusqu'à validation par l'administrateur.</div></div>
+  <div class="manual-step"><div class="manual-num">4</div><div class="mu">Effectuez le transfert vers le numéro indiqué, puis entrez votre numéro d'expéditeur et la référence de transaction pour soumettre. La demande sera enregistrée en attente de validation par l'administrateur.</div></div>
 </div>
 
 <div class="card">
@@ -264,8 +264,8 @@ manual: () => `${back()}<h2>📖 Manuel d'utilisation & Réclamation</h2>
 <div class="card" style="border-color:var(--gold)">
   <h3 style="color:var(--gold);margin-bottom:8px">3. Comment réclamer ses revenus chaque matin ?</h3>
   <div class="manual-step"><div class="manual-num">1</div><div class="mu">Connectez-vous à votre application <b>chaque matin</b>.</div></div>
-  <div class="manual-step"><div class="manual-num">2</div><div class="mu">Sur la page <b>Accueil</b> ou dans l'onglet <b>Mes achats</b>, un bouton doré clignotant apparaîtra : <b style="color:var(--gold)">"🎁 Réclamer mes revenus du jour"</b>.</div></div>
-  <div class="manual-step"><div class="manual-num">3</div><div class="mu">Cliquez dessus pour ajouter instantanément vos gains journaliers de vos investissements actifs à votre solde disponible selon la durée de chaque plan !</div></div>
+  <div class="manual-step"><div class="manual-num">2</div><div class="mu">Sur la page <b>Accueil</b> ou dans l'onglet <b>Mes achats</b>, un bouton doré apparaîtra : <b style="color:var(--gold)">"🎁 Réclamer mes revenus du jour"</b>.</div></div>
+  <div class="manual-step"><div class="manual-num">3</div><div class="mu">Cliquez dessus pour ajouter instantanément vos gains journaliers de vos investissements actifs à votre solde disponible !</div></div>
 </div>`,
 
 recharge: () => `${back()}<h2>Recharger</h2>
@@ -386,7 +386,7 @@ function logout(){
 
 function buy(i){
   const v = VIP[i];
-  if(currentUser.bal < v.p) return err("Solde insuffisant. Veuillez recharger votre compte et attendre la validation de l'administrateur.");
+  if(currentUser.bal < v.p) return err("Solde insuffisant. Rechargez votre compte.");
   
   currentUser.bal -= v.p;
   setStorage("ac_user", currentUser);
@@ -415,40 +415,45 @@ function toMethod(){
 
 function confirmPay(){
   const p = $("pn"), t = $("tx");
-  if(p.length < 8 || !t) return err("Veuillez remplir tous les champs de paiement.");
+  if(p.length < 8 || t.length < 3) return err("Veuillez remplir votre numéro et l'ID de transaction.");
   
-  recs.unshift({ a: T.amt, m: T.m, t: D(), s: "En attente" });
+  // Enregistrement de la recharge en statut "En attente" sans modifier le solde de l'utilisateur
+  recs.push({ a: T.amt, m: T.m + " · " + esc(p) + " · ID: " + esc(t), t: D(), s: "En attente" });
   setStorage("ac_recs", recs);
   
-  alert("⏳ Demande de recharge enregistrée avec succès !\nElle restera en attente jusqu'à validation par l'administrateur.");
-  go("home");
+  alert("✅ Demande de recharge soumise avec succès !\nElle est actuellement en attente de validation par l'administrateur.");
+  go("histRec");
 }
 
 function doWd(){
   const a = +$("a"), p = $("pn");
-  if(a < 1000) return err("Montant minimum de retrait : 1 000 F.");
-  if(currentUser.bal < a) return err("Solde insuffisant pour ce retrait.");
-  if(!p) return err("Entrez votre numéro de réception.");
-  
+  if(a < 1000) return err("Montant minimum : 1 000 F.");
+  if(p.length < 8) return err("Entrez un numéro valide.");
+  if(currentUser.bal < a) return err("Solde insuffisant.");
+
   currentUser.bal -= a;
   setStorage("ac_user", currentUser);
   
-  rets.unshift({ a: a, m: "Mobile Money (" + p + ")", t: D(), s: "En attente" });
+  rets.push({ a, m: esc(p), t: D(), s: "En attente" });
   setStorage("ac_rets", rets);
-  
-  alert("💸 Demande de retrait enregistrée avec succès !");
-  go("home");
+  go("histRet");
 }
 
 function doLink(){
-  const m = $("m"), acc = $("accName"), p = $("pn"), pin = $("pin");
-  if(!acc || p.length < 8 || pin.length < 4) return err("Veuillez remplir tous les champs correctement.");
+  const accName = $("accName");
+  const p = $("pn");
+  const pin = $("pin");
   
-  currentUser.card = { m, accName: acc, num: p };
+  if(!accName) return err("Veuillez entrer votre nom complet.");
+  if(p.length < 8) return err("Entrez un numéro de téléphone valide.");
+  if(pin.length !== 6 || isNaN(pin)) return err("Le code secret doit comporter exactement 6 chiffres.");
+
+  currentUser.card = { m: $("m"), num: p, accName: accName, pin: pin };
   setStorage("ac_user", currentUser);
-  alert("✅ Compte de retrait lié avec succès !");
-  go("account");
+  go("card");
 }
+
+Object.assign(window, { go, err, signup, login, logout, buy, toMethod, copyN, confirmPay, doWd, doLink, claimDailyRevenues });
 
 render();
 </script>
