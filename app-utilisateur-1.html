@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Avenir Capital</title>
+<style>
+:root{--bg:#0a1a12;--card:#132e21;--tx:#f8fafc;--mu:#a3b8af;--pr:#10b981;--pr2:#059669;--bd:#1e4632;--er:#ef4444;--gold:#f59e0b;--red:#dc2626;--jeko:#8b5cf6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,sans-serif;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));min-height:100vh}
+#app{max-width:480px;margin:auto;padding:16px;min-height:100vh}
+h1,h2,h3{margin:0 0 12px}h2{font-size:20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.hero{background:linear-gradient(135deg,var(--red),var(--pr));color:#fff;border-radius:16px;padding:18px;margin-bottom:14px}
+.hero small{opacity:.85;font-size:13px}.hero b{display:block;font-size:32px;margin-top:4px}
+.banner-pret{background:linear-gradient(135deg,var(--gold),#d97706);color:#fff;border-radius:16px;padding:18px;text-align:center;margin-bottom:14px;text-decoration:none;display:block}
+input,select{width:100%;padding:12px;margin:6px 0 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+label{font-size:13px;color:var(--mu)}
+button{font:inherit;cursor:pointer}
+.btn{width:100%;padding:13px;border:0;border-radius:10px;background:var(--pr);color:#fff;font-weight:600;text-decoration:none;display:inline-block;text-align:center}
+.btn.sec{background:rgba(16,185,129,.15);color:var(--pr)}.btn.out{background:none;border:1px solid var(--er);color:var(--er)}
+.btn.jeko{background:var(--jeko)}.btn.gold{background:linear-gradient(135deg,var(--gold),#d97706)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.grid button{padding:16px 8px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:6px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.li{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px;margin-bottom:8px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);text-align:left}
+.tag{font-size:12px;padding:4px 10px;border-radius:20px;background:rgba(245,158,11,.2);color:var(--gold);font-weight:600}
+.tag.pr{background:rgba(16,185,129,.2);color:var(--pr)}.tag.no{background:rgba(239,68,68,.2);color:var(--er)}
+.mu{color:var(--mu);font-size:14px}.err{color:var(--er);font-size:14px;min-height:20px;margin:4px 0 8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.chips button{padding:8px 12px;border-radius:20px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+.back{background:none;border:0;color:var(--pr);padding:0 0 12px;font-weight:600;font-size:15px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);z-index:100}
+nav button{flex:1;padding:10px 2px;border:0;background:none;color:var(--mu);font-size:11px}nav button.on{color:var(--pr);font-weight:700}
+nav span{display:block;font-size:20px;margin-bottom:2px}
+.num{font-size:22px;font-weight:700;letter-spacing:1px;color:var(--gold)}
+.vip-tag{font-size:11px;padding:3px 8px;border-radius:12px;background:rgba(16,185,129,.2);color:var(--pr);font-weight:600}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="nav"></nav>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,setDoc,updateDoc,addDoc,onSnapshot,collection,query,where,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyC8jUCtIrHrySXzNAXTdRTaCBTNgEirS8w",
+  authDomain: "avenir-capital.firebaseapp.com",
+  projectId: "avenir-capital",
+  storageBucket: "avenir-capital.firebasestorage.app",
+  messagingSenderId: "565430762059",
+  appId: "1:565430762059:web:3c7d536d55d3277d35ebce"
+});
+const auth = getAuth(app), db = getFirestore(app);
+
+const WAVE_NUM="0509302107", MOOV_NUM="0104217547", MTN_NUM="0545576710";
+const JEKO_LINK="https://pay.jeko.africa/pl/4f580acc-5df9-440e-b168-6beb65823bea";
+const SUPPORT="https://wa.me/message/ABZ2BRFJPVIOE1";
+const BONUS_PREMIUM=350000;
+const INVITATION_CODE="https://avenircapitalsocial22-droid.github.io/Avenir-capital-social-22/";
+
+const VIP=[
+  {n:"VIP1 — Découverte",icon:"🟢",p:5000,jourRevenu:500,benefice:3500,total:8500,duree:7},
+  {n:"VIP2 — Essentiel",icon:"🟡",p:10000,jourRevenu:1000,benefice:15000,total:25000,duree:15},
+  {n:"VIP3 — Croissance",icon:"🔵",p:50000,jourRevenu:1130,benefice:22600,total:72600,duree:20},
+  {n:"VIP4 — Premium",icon:"🟣",p:100000,jourRevenu:2000,benefice:60000,total:160000,duree:30},
+  {n:"VIP5 — Excellence",icon:"🟠",p:200000,jourRevenu:3000,benefice:250000,total:450000,duree:45},
+  {n:"VIP6 — Prestige",icon:"🟤",p:500000,jourRevenu:2250,benefice:135000,total:635000,duree:60},
+  {n:"VIP7 — Élite",icon:"🔴",p:1000000,jourRevenu:5000,benefice:450000,total:1450000,duree:90},
+  {n:"VIP8 — Mini",icon:"⚡",p:4000,jourRevenu:343,benefice:4116,total:8116,duree:12},
+  {n:"VIP9 — Starter",icon:"🚀",p:3500,jourRevenu:250,benefice:5750,total:9250,duree:23}
+];
+
+let P="load", T={}, me=null, recs=[], rets=[], buys=[], unsubs=[];
+
+const em = p => p.replace(/\D/g,"")+"@avenir.app";
+const today = () => new Date().toISOString().slice(0,10);
+const F = n => Number(n||0).toLocaleString("fr-FR")+" F";
+const esc = s => String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $ = id => document.getElementById(id)?.value?.trim() || "";
+const stat = x => x.s || x.t || "En attente";
+const norm = s => String(s||"").trim().toLowerCase();
+const dt = x => x.ts ? new Date(x.ts).toLocaleDateString("fr-FR") : "";
+const U = () => me || {name:"Investisseur",phone:"",bal:0,card:null};
+const canClaim = () => me && me.lastClaim !== today() && buys.some(b => b.joursRestants > 0);
+
+function go(p,t){P=p;if(t)Object.assign(T,t);render();scrollTo(0,0)}
+function err(m){const e=document.getElementById("err");if(e)e.textContent=m}
+const back = (p="home") => `<button class="back" onclick="go('${p}')">‹ Retour</button>`;
+const tagc = s => {s=norm(s);return s.startsWith("valid")?"pr":s.startsWith("refus")?"no":""};
+const hist = (a,empty) => a.length ? a.map(x=>`<div class="card row"><div><b>${F(x.a)}</b><div class="mu">${esc(x.m)}${x.tx?" · ID: "+esc(x.tx):""} · ${dt(x)}</div></div><span class="tag ${tagc(stat(x))}">${esc(stat(x))}</span></div>`).join("") : `<p class="mu">${empty}</p>`;
+
+window.copyN = n => navigator.clipboard.writeText(n).then(()=>alert("✅ Numéro copié !")).catch(()=>alert(n));
+
+const pages = {
+load: () => `<p class="mu">Chargement…</p>`,
+
+signup: () => `<h1>Avenir Capital</h1><p class="mu">Créez votre compte pour commencer à investir.</p>
+<div class="card">
+  <label>Nom complet</label><input id="n" placeholder="Ex: Jean Kouassi">
+  <label>Numéro de téléphone</label><input id="ph" type="tel" placeholder="Ex: 0708091011">
+  <label>Mot de passe</label><input id="pw" type="password" placeholder="••••••••">
+  <label>Code d'invitation</label><input id="rf" value="${INVITATION_CODE}">
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="signup()">S'inscrire</button>
+</div>
+<button class="btn sec" onclick="go('login')">J'ai déjà un compte</button>`,
+
+login: () => `<h1>Avenir Capital</h1>
+<div class="card">
+  <label>Numéro de téléphone</label><input id="ph" type="tel" placeholder="Ex: 0708091011">
+  <label>Mot de passe</label><input id="pw" type="password" placeholder="••••••••">
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="login()">Se connecter</button>
+</div>
+<button class="btn sec" onclick="go('signup')">Créer un compte</button>`,
+
+home: () => { const u=U(); return `<h2>Bonjour ${esc(u.name)} 👋</h2>
+<div class="hero"><small>Solde disponible</small><b>${F(u.bal)}</b></div>
+${canClaim() ? `<button class="btn gold" style="margin-bottom:14px;padding:15px" onclick="claimDailyRevenues()">🎁 Réclamer mes revenus du jour</button>` :
+`<div class="card" style="text-align:center;border-color:var(--pr)"><p style="margin:0;color:var(--pr);font-size:14px">✅ Revenus du jour déjà réclamés ou aucun plan actif.</p></div>`}
+<a class="banner-pret" href="${SUPPORT}" target="_blank" rel="noopener"><span style="font-size:28px">💰</span><h3 style="margin:6px 0 2px">Obtenir un Prêt Rapide</h3><p style="margin:0;font-size:13px">Jusqu'à ${F(BONUS_PREMIUM)} — Écrivez-nous sur WhatsApp</p></a>
+<div class="grid">
+  <button onclick="go('recharge')"><span>➕</span>Recharger</button>
+  <button onclick="go('withdraw')"><span>💸</span>Retirer</button>
+  <button onclick="go('invest')"><span>📈</span>Investir</button>
+  <button onclick="go('manual')"><span>📖</span>Guide / Manuel</button>
+</div>
+<button class="li" onclick="go('histRec')">📊 Historique des recharges <span>›</span></button>
+<button class="li" onclick="go('histRet')">📊 Historique des retraits <span>›</span></button>
+<button class="li" onclick="go('service')">💬 Service client WhatsApp <span>›</span></button>`; },
+
+invest: () => `<h2>📈 Plans d'investissement (${VIP.length} Sacs)</h2>` + VIP.map((v,i)=>`
+<div class="card">
+  <div class="row"><b>${v.icon} ${v.n}</b><span class="vip-tag">${v.duree} jours</span></div>
+  <p class="mu" style="margin:8px 0">💵 Capital : <b>${F(v.p)}</b><br>✅ Revenu/jour : ${F(v.jourRevenu)}<br>🎯 Bénéfice total : +${F(v.benefice)}<br>💰 Gain total estimé : <b>${F(v.total)}</b></p>
+  <button class="btn" onclick="buy(${i})">Investir maintenant</button>
+</div>`).join("") + `<div id="err" class="err"></div>`,
+
+achats: () => `<h2>Mes achats</h2>` +
+  (canClaim() ? `<button class="btn gold" style="margin-bottom:12px" onclick="claimDailyRevenues()">🎁 Réclamer mes revenus du jour</button>` : "") +
+  (buys.length ? buys.map(x=>`<div class="card">
+  <div class="row"><b>${x.icon||"📊"} ${esc(x.n)}</b><span class="tag ${x.joursRestants>0?"pr":""}">${x.joursRestants>0?"Actif":"Terminé"}</span></div>
+  <div class="mu" style="margin-top:6px">Investi : ${F(x.p)} · +${F(x.jourRevenu)}/jour<br>Jours restants : <b>${x.joursRestants}</b> / ${x.duree}<br>Bénéfice total : +${F(x.benefice)} · Total : ${F(x.total)}<br>Acheté le ${dt(x)}</div>
+</div>`).join("") : `<p class="mu">Aucun achat d'investissement pour le moment.</p>`),
+
+team: () => `<h2>Mon équipe</h2><div class="card"><p class="mu">Votre lien / code d'invitation</p><div class="num" style="font-size:14px;word-break:break-all">${INVITATION_CODE}</div><p class="mu" style="margin-top:10px">Membres invités : <b>${U().team||0}</b></p></div>`,
+
+account: () => { const u=U(); return `<h2>Mon compte</h2>
+<div class="card"><b>${esc(u.name)}</b><div class="mu">${esc(u.phone)} · Solde : ${F(u.bal)}</div></div>
+${[["histRec","Historique des recharges"],["histRet","Historique des retraits"],["achats","Mes achats"],["team","Équipe"],["manual","📖 Guide d'utilisation"],["link","Lier mon compte de retrait"],["card","Ma carte de retrait"],["service","Service client"]].map(x=>`<button class="li" onclick="go('${x[0]}')">${x[1]} <span>›</span></button>`).join("")}
+<button class="btn out" onclick="logout()">Se déconnecter</button>`; },
+
+manual: () => `${back()}<h2>📖 Manuel d'utilisation</h2>
+<div class="card"><h3 style="color:var(--pr)">1. Recharger</h3><p class="mu">Accueil › Recharger › montant (min. 1 000 F) › mode de paiement › effectuez le transfert, puis entrez votre numéro et l'ID de transaction. La demande reste « En attente » jusqu'à validation par l'administrateur, qui crédite alors votre solde.</p></div>
+<div class="card"><h3 style="color:var(--pr)">2. Acheter un plan (Sac)</h3><p class="mu">Vérifiez que votre solde est suffisant, ouvrez l'onglet Investir, choisissez un plan VIP et touchez « Investir maintenant ».</p></div>
+<div class="card" style="border-color:var(--gold)"><h3 style="color:var(--gold)">3. Réclamer ses revenus</h3><p class="mu">Chaque matin, touchez le bouton doré « 🎁 Réclamer mes revenus du jour » (Accueil ou Mes achats) pour ajouter vos gains du jour à votre solde.</p></div>`,
+
+recharge: () => `${back()}<h2>Recharger</h2>
+<div class="card">
+  <label>Montant (minimum 1 000 F)</label>
+  <input id="a" type="number" inputmode="numeric" value="${T.amt||""}" placeholder="Ex: 10000">
+  <div class="chips">${[4000,5000,10000,50000,100000].map(v=>`<button onclick="document.getElementById('a').value=${v}">${v.toLocaleString("fr-FR")}</button>`).join("")}</div>
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="toMethod()">Continuer</button>
+</div>`,
+
+method: () => `${back("recharge")}<h2>Choisir le mode de paiement</h2>
+<p class="mu">Montant à recharger : <b>${F(T.amt)}</b></p>
+<button class="li" onclick="go('pay',{m:'Wave',num:'${WAVE_NUM}'})"><b>Wave</b><span>›</span></button>
+<button class="li" onclick="go('pay',{m:'MTN Money',num:'${MTN_NUM}'})"><b>MTN Money</b><span>›</span></button>
+<button class="li" onclick="go('pay',{m:'Moov Money',num:'${MOOV_NUM}'})"><b>Moov Money</b><span>›</span></button>
+<a class="btn jeko" style="display:block;margin-top:10px" href="${JEKO_LINK}" target="_blank">🔗 Veuillez payer pour Avenir avec Jeko</a>`,
+
+pay: () => `${back("method")}<h2>Paiement par ${T.m}</h2>
+<div class="card">
+  <p class="mu">Effectuez le transfert de <b>${F(T.amt)}</b> vers le numéro ci-dessous :</p>
+  <div class="card" style="background:var(--bg);text-align:center">
+    <div class="num">${T.num}</div>
+    <div class="row" style="justify-content:center;margin-top:10px">
+      <button class="btn sec" style="width:auto;padding:8px 16px" onclick="copyN('${T.num}')">Copier le numéro</button>
+      <a class="btn jeko" style="width:auto;padding:8px 14px;font-size:13px" href="${JEKO_LINK}" target="_blank">🔗 Payer avec Jeko</a>
+    </div>
+  </div>
+  <label>Votre numéro de paiement (expéditeur)</label><input id="pn" type="tel" placeholder="Ex: 0708091011">
+  <label>ID de transaction / Référence</label><input id="tx" placeholder="Ex: Tx12345678">
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="confirmPay()">Confirmer le paiement</button>
+</div>`,
+
+withdraw: () => { const c=U().card; return `${back()}<h2>Retirer des fonds</h2>
+<div class="card">
+  <p class="mu">Solde disponible : <b style="color:var(--pr)">${F(U().bal)}</b></p>
+  <label>Montant (minimum 1 000 F)</label><input id="a" type="number" inputmode="numeric" placeholder="Ex: 5000">
+  <label>Votre numéro de réception</label><input id="pn" type="tel" value="${c?esc(c.num):""}" placeholder="Ex: 0708091011">
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="doWd()">Valider le retrait</button>
+</div>`; },
+
+histRec: () => `${back()}<h2>Historique des recharges</h2>`+hist(recs,"Aucune recharge enregistrée."),
+histRet: () => `${back()}<h2>Historique des retraits</h2>`+hist(rets,"Aucun retrait enregistré."),
+
+link: () => { const u=U(); return `${back("account")}<h2>Lier un compte de retrait</h2>
+<div class="card">
+  <label>Opérateur</label><select id="m"><option>Wave</option><option>Moov Money</option><option>MTN Money</option></select>
+  <label>Nom complet sur le compte</label><input id="accName" value="${esc(u.name)}">
+  <label>Numéro de téléphone</label><input id="pn" type="tel" placeholder="Ex: 0708091011">
+  <label>Code secret de retrait (6 chiffres)</label><input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••••">
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="doLink()">Enregistrer</button>
+</div>`; },
+
+card: () => { const c=U().card; return `${back("account")}<h2>Ma carte de retrait</h2>`+(c?`<div class="hero"><small>${esc(c.m)}</small><b>${esc(c.num)}</b><small>${esc(c.accName||U().name)}</small></div>`:`<p class="mu">Aucun compte de retrait lié pour l'instant.</p><button class="btn" onclick="go('link')">Lier un compte</button>`); },
+
+service: () => `${back("account")}<h2>Service client & Support</h2>
+<div class="card"><p class="mu">Besoin d'aide ? Contactez-nous sur WhatsApp pour vos recharges, retraits ou demandes de prêt.</p>
+<a class="btn" style="display:block" href="${SUPPORT}" target="_blank" rel="noopener">💬 Contact WhatsApp</a></div>`
+};
+
+function render(){
+  const a=document.getElementById("app"), n=document.getElementById("nav");
+  if(!me && !["login","signup","load"].includes(P)) P="login";
+  if(me && ["login","signup","load"].includes(P)) P="home";
+  a.innerHTML = pages[P]();
+  const tabs=[["home","🏠","Accueil"],["invest","📈","Investir"],["achats","🧾","Sacs"],["team","👥","Équipe"],["account","👤","Compte"]];
+  n.style.display = ["login","signup","load"].includes(P) ? "none" : "flex";
+  n.innerHTML = tabs.map(t=>`<button class="${t[0]===P?"on":""}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join("");
+}
+function soft(){
+  const ae=document.activeElement;
+  if(ae && (ae.tagName==="INPUT"||ae.tagName==="SELECT")) return;
+  render();
+}
+
+onAuthStateChanged(auth, u => {
+  unsubs.forEach(f=>f()); unsubs=[]; me=null; recs=[]; rets=[]; buys=[];
+  if(!u){ P = P==="signup" ? "signup" : "login"; render(); return; }
+  const q = c => query(collection(db,c), where("uid","==",u.uid));
+  const srt = a => a.sort((x,y)=>(y.ts||0)-(x.ts||0));
+  const L = (c,set) => unsubs.push(onSnapshot(q(c), s=>{set(srt(s.docs.map(d=>({id:d.id,...d.data()}))));soft()}, e=>console.error(c,e)));
+  unsubs.push(onSnapshot(doc(db,"users",u.uid), s=>{
+    me = {id:u.uid, name:"Investisseur", phone:"", bal:0, ...(s.exists()?s.data():{})};
+    if(["login","signup","load"].includes(P)) P="home";
+    soft();
+  }, e=>console.error("users",e)));
+  L("recharges", x=>recs=x);
+  L("withdrawals", x=>rets=x);
+  L("purchases", x=>buys=x);
+});
+
+async function signup(){
+  const n=$("n"), p=$("ph").replace(/\D/g,""), w=$("pw"), r=$("rf")||INVITATION_CODE;
+  if(!n||p.length<8||w.length<6) return err("Remplissez tous les champs (mot de passe : min. 6 caractères).");
+  try{
+    const c = await createUserWithEmailAndPassword(auth, em(p), w);
+    await setDoc(doc(db,"users",c.user.uid), {name:n, phone:p, bal:0, ref:r, card:null, ts:Date.now()});
+  }catch(e){ err(e.code==="auth/email-already-in-use" ? "Ce numéro a déjà un compte. Connectez-vous." : "Erreur : "+e.message); }
+}
+async function login(){
+  const p=$("ph").replace(/\D/g,""), w=$("pw");
+  if(p.length<8||!w) return err("Entrez votre numéro et mot de passe.");
+  try{ await signInWithEmailAndPassword(auth, em(p), w); }
+  catch(e){ err("Numéro ou mot de passe incorrect."); }
+}
+function logout(){ signOut(auth); }
+
+async function buy(i){
+  const v=VIP[i];
+  try{
+    await runTransaction(db, async t=>{
+      const ur=doc(db,"users",me.id), us=await t.get(ur), bal=us.data().bal||0;
+      if(bal<v.p) throw {message:"Solde insuffisant. Rechargez votre compte."};
+      t.update(ur,{bal:bal-v.p});
+      t.set(doc(collection(db,"purchases")), {uid:me.id,n:v.n,icon:v.icon,p:v.p,jourRevenu:v.jourRevenu,benefice:v.benefice,total:v.total,duree:v.duree,joursRestants:v.duree,ts:Date.now()});
+    });
+    go("achats");
+  }catch(e){ err(e.message); }
+}
+
+async function claimDailyRevenues(){
+  let add=0, n=0;
+  try{
+    await runTransaction(db, async t=>{
+      add=0; n=0;
+      const ur=doc(db,"users",me.id), us=await t.get(ur), d=us.data();
+      if(d.lastClaim===today()) throw {message:"⚠️ Vous avez déjà réclamé vos revenus aujourd'hui. Revenez demain !"};
+      const snaps = await Promise.all(buys.filter(b=>b.joursRestants>0).map(b=>t.get(doc(db,"purchases",b.id))));
+      snaps.forEach(s=>{
+        const b=s.data();
+        if(b && b.joursRestants>0){ add+=b.jourRevenu; n++; t.update(s.ref,{joursRestants:b.joursRestants-1}); }
+      });
+      if(!add) throw {message:"❌ Aucun investissement actif pour réclamer des revenus."};
+      t.update(ur,{bal:(d.bal||0)+add, lastClaim:today()});
+    });
+    alert(`🎉 +${F(add)} ajoutés à votre solde (${n} investissement(s) actif(s)).`);
+  }catch(e){ alert(e.message); }
+}
+
+function toMethod(){
+  const a=+$("a");
+  if(a<1000) return err("Montant minimum : 1 000 F.");
+  T.amt=a; go("method");
+}
+
+async function confirmPay(){
+  const p=$("pn"), x=$("tx");
+  if(p.length<8||x.length<3) return err("Remplissez votre numéro et l'ID de transaction.");
+  try{
+    await addDoc(collection(db,"recharges"), {uid:me.id, a:T.amt, m:T.m+" · "+p, tx:x, s:"En attente", t:"En attente", ts:Date.now()});
+    alert("✅ Demande de recharge envoyée !\nElle est en attente de validation par l'administrateur.");
+    go("histRec");
+  }catch(e){ err("Échec de l'envoi : "+e.message); }
+}
+
+async function doWd(){
+  const a=+$("a"), p=$("pn");
+  if(a<1000) return err("Montant minimum : 1 000 F.");
+  if(p.length<8) return err("Entrez un numéro valide.");
+  try{
+    await runTransaction(db, async t=>{
+      const ur=doc(db,"users",me.id), us=await t.get(ur), bal=us.data().bal||0;
+      if(bal<a) throw {message:"Solde insuffisant."};
+      t.update(ur,{bal:bal-a});
+      t.set(doc(collection(db,"withdrawals")), {uid:me.id, a, m:((me.card&&me.card.m)||"Wave")+" · "+p, s:"En attente", t:"En attente", ts:Date.now()});
+    });
+    go("histRet");
+  }catch(e){ err(e.message); }
+}
+
+async function doLink(){
+  const accName=$("accName"), p=$("pn"), pin=$("pin");
+  if(!accName) return err("Entrez votre nom complet.");
+  if(p.length<8) return err("Entrez un numéro valide.");
+  if(pin.length!==6||isNaN(pin)) return err("Le code secret doit avoir exactement 6 chiffres.");
+  try{
+    await updateDoc(doc(db,"users",me.id), {card:{m:$("m"), num:p, accName, pin}});
+    go("card");
+  }catch(e){ err(e.message); }
+}
+
+Object.assign(window,{go,err,signup,login,logout,buy,toMethod,confirmPay,doWd,doLink,claimDailyRevenues});
+render();
+</script>
+</body>
+</html>
