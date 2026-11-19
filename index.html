@@ -56,7 +56,9 @@ const MTN_NUM  = "0545576710";
 const JEKO_LINK = "https://pay.jeko.africa/pl/4f580acc-5df9-440e-b168-6beb65823bea"; 
 const SUPPORT  = "https://wa.me/message/ABZ2BRFJPVIOE1";
 const BONUS_PREMIUM = 350000;
-const INVITATION_CODE = "https://avenircapitalsocial22-droid.github.io/Avenir-capital-social-22/";
+const INVITATION_CODE = "WTZH";
+const REFERRAL_BONUS = 300;
+const APP_LINK = window.location.href.split("?")[0];
 
 // 📊 11 PLANS D'INVESTISSEMENT (AVEC PLAN 1 ET PLAN 2 AJOUTÉS)
 const VIP=[
@@ -88,6 +90,10 @@ let recs = getStorage("ac_recs", []);
 let rets = getStorage("ac_rets", []);
 let buys = getStorage("ac_buys", []);
 let teamN = getStorage("ac_team", 0);
+
+// 🔗 RÉCUPÉRATION DU CODE DE PARRAINAGE DANS L'URL
+const urlParams = new URLSearchParams(window.location.search);
+const urlRef = urlParams.get("ref") || INVITATION_CODE;
 
 // 🕒 VÉRIFICATION DE LA RÉCLAMATION QUOTIDIENNE
 function canClaimToday() {
@@ -139,7 +145,39 @@ window.claimDailyRevenues = function() {
   }
 };
 
-const U = () => currentUser || { name: "Investisseur", phone: "", bal: 0, ref: INVITATION_CODE, card: null };
+// 🤝 PARTAGE DU LIEN DE PARRAINAGE & CRÉDIT AUTOMATIQUE DE 300 F
+window.shareReferralLink = function() {
+  if (!currentUser) return;
+  const refCode = currentUser.myCode || INVITATION_CODE;
+  const refLink = `${APP_LINK}?ref=${encodeURIComponent(refCode)}`;
+
+  const creditReferral = () => {
+    currentUser.bal = (currentUser.bal || 0) + REFERRAL_BONUS;
+    teamN = (teamN || 0) + 1;
+    setStorage("ac_user", currentUser);
+    setStorage("ac_team", teamN);
+    alert(`🎉 Lien de parrainage partagé !\n+${F(REFERRAL_BONUS)} ont été crédités automatiquement sur votre compte.`);
+    render();
+  };
+
+  if (navigator.share) {
+    navigator.share({
+      title: "Avenir Capital",
+      text: `Rejoins Avenir Capital avec mon code d'invitation ${refCode} :`,
+      url: refLink
+    }).then(() => {
+      creditReferral();
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(refLink).then(() => {
+      creditReferral();
+    }).catch(() => {
+      creditReferral();
+    });
+  }
+};
+
+const U = () => currentUser || { name: "Investisseur", phone: "", bal: 0, ref: INVITATION_CODE, myCode: INVITATION_CODE, card: null };
 const F = n => Number(n||0).toLocaleString("fr-FR") + " F";
 const D = () => new Date().toLocaleDateString("fr-FR");
 const esc = s => String(s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -152,7 +190,7 @@ const back = (p="home") => `<button class="back" onclick="go('${p}')">‹ Retour
 const hist = (a, empty) => a.length ? a.map(x => `<div class="card row"><div><b>${F(x.a)}</b><div class="mu">${x.m} · ${x.t}</div></div><span class="tag" style="background:rgba(245,158,11,0.2);color:var(--gold);">${x.s||"En attente"}</span></div>`).join("") : `<p class="mu">${empty}</p>`;
 
 window.copyN = function(num){
-  navigator.clipboard.writeText(num).then(() => alert("✅ Numéro copié !")).catch(() => alert(num));
+  navigator.clipboard.writeText(num).then(() => alert("✅ Copié !")).catch(() => alert(num));
 };
 
 const pages = {
@@ -161,7 +199,7 @@ signup: () => `<h1>Avenir Capital</h1><p class="mu">Créez votre compte pour com
   <label>Nom complet</label><input id="n" placeholder="Ex: Jean Kouassi">
   <label>Numéro de téléphone</label><input id="ph" type="tel" placeholder="Ex: 0708091011">
   <label>Mot de passe</label><input id="pw" type="password" placeholder="••••••••">
-  <label>Code d'invitation</label><input id="rf" value="${INVITATION_CODE}">
+  <label>Code d'invitation</label><input id="rf" value="${esc(urlRef)}" placeholder="Entrez votre code d'invitation">
   <div id="err" class="err"></div>
   <button class="btn" onclick="signup()">S'inscrire</button>
 </div>
@@ -245,7 +283,20 @@ achats: () => {
 </div>`).join("") : `<p class="mu">Aucun sac de produit acheté pour le moment.</p>`);
 },
 
-team: () => `<h2>Mon équipe</h2><div class="card"><p class="mu">Votre lien / code d'invitation</p><div class="num" style="font-size:14px;word-break:break-all">${INVITATION_CODE}</div><p class="mu" style="margin-top:10px">Membres invités : <b>${teamN}</b></p></div>`,
+team: () => {
+  const refCode = U().myCode || INVITATION_CODE;
+  const refLink = `${APP_LINK}?ref=${encodeURIComponent(refCode)}`;
+  return `<h2>Mon équipe</h2>
+<div class="card">
+  <p class="mu">Votre code d'invitation</p>
+  <div class="num" style="margin-bottom:10px">${esc(refCode)}</div>
+  <p class="mu">Votre lien de parrainage</p>
+  <div class="num" style="font-size:13px;word-break:break-all;margin-bottom:12px">${esc(refLink)}</div>
+  <p class="mu">Gain par parrainage : <b style="color:var(--pr)">+${F(REFERRAL_BONUS)}</b> crédités automatiquement</p>
+  <p class="mu" style="margin-top:6px;margin-bottom:12px">Membres parrainés : <b>${teamN}</b></p>
+  <button class="btn" onclick="shareReferralLink()">🔗 Partager le lien de parrainage</button>
+</div>`;
+},
 
 account: () => { const u = U(); return `<h2>Mon compte</h2>
 <div class="card"><b>${esc(u.name)}</b><div class="mu">${esc(u.phone)} · Solde : ${F(u.bal)}</div></div>
@@ -315,155 +366,143 @@ withdraw: () => { const c = U().card; return `${back()}<h2>Retirer des fonds</h2
 <div class="card">
   <p class="mu">Solde disponible : <b style="color:var(--pr)">${F(U().bal)}</b></p>
   <label>Montant (minimum 1 000 F)</label><input id="a" type="number" inputmode="numeric" placeholder="Ex: 5000">
-  <label>Votre numéro de réception</label><input id="pn" type="tel" value="${c ? esc(c.num) : ""}" placeholder="Ex: 0708091011">
+  <label>Votre numéro de réception</label><input id="pn" type="tel" value="${c ? esc(c.num) : esc(U().phone)}" placeholder="Ex: 0708091011">
+  <label>Réseau</label>
+  <select id="m">
+    <option value="Wave">Wave</option>
+    <option value="MTN Money">MTN Money</option>
+    <option value="Moov Money">Moov Money</option>
+  </select>
   <div id="err" class="err"></div>
-  <button class="btn" onclick="doWd()">Valider le retrait</button>
+  <button class="btn" onclick="confirmWithdraw()">Demander le retrait</button>
 </div>`; },
+
+link: () => `${back("account")}<h2>Lier mon compte de retrait</h2>
+<div class="card">
+  <label>Nom complet du titulaire</label><input id="cn" value="${esc(U().card?.holder||U().name)}" placeholder="Ex: Jean Kouassi">
+  <label>Numéro de téléphone</label><input id="cp" type="tel" value="${esc(U().card?.num||U().phone)}" placeholder="Ex: 0708091011">
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="saveLink()">Enregistrer</button>
+</div>`,
+
+card: () => `${back("account")}<h2>Ma carte bancaire</h2>
+<div class="card">
+  <label>Titulaire de la carte</label><input id="ch" value="${esc(U().card?.holder||"")}" placeholder="Ex: Jean Kouassi">
+  <label>Numéro de carte / compte</label><input id="cn" value="${esc(U().card?.num||"")}" placeholder="•••• •••• ••••">
+  <div id="err" class="err"></div>
+  <button class="btn" onclick="saveCard()">Enregistrer la carte</button>
+</div>`,
 
 histRec: () => `${back()}<h2>Historique des recharges</h2>` + hist(recs, "Aucune recharge enregistrée."),
 histRet: () => `${back()}<h2>Historique des retraits</h2>` + hist(rets, "Aucun retrait enregistré."),
-
-link: () => { const c = U().card || {}; return `${back("account")}<h2>Lier mon compte de retrait</h2>
-<div class="card">
-  <label>Opérateur</label>
-  <select id="op">
-    <option value="Wave" ${c.op==='Wave'?'selected':''}>Wave</option>
-    <option value="MTN Money" ${c.op==='MTN Money'?'selected':''}>MTN Money</option>
-    <option value="Moov Money" ${c.op==='Moov Money'?'selected':''}>Moov Money</option>
-  </select>
-  <label>Nom du titulaire</label><input id="cn" value="${esc(c.name||"")}" placeholder="Ex: Jean Kouassi">
-  <label>Numéro de téléphone</label><input id="cnum" type="tel" value="${esc(c.num||"")}" placeholder="Ex: 0708091011">
-  <div id="err" class="err"></div>
-  <button class="btn" onclick="saveCard()">Enregistrer le compte</button>
-</div>`; },
-
-card: () => { const c = U().card; return `${back("account")}<h2>Ma carte / Compte lié</h2>` + (c ? `
-<div class="hero" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)">
-  <small>${esc(c.op)}</small>
-  <b style="font-size:24px;margin:10px 0">${esc(c.num)}</b>
-  <small>${esc(c.name)}</small>
-</div>
-<button class="btn sec" onclick="go('link')">Modifier les informations</button>` : `<p class="mu">Aucun compte de retrait lié pour le moment.</p><button class="btn" onclick="go('link')">Lier un compte</button>`); },
-
-service: () => `${back()}<h2>Service Client</h2>
-<div class="card" style="text-align:center;padding:24px 14px">
-  <div style="font-size:42px;margin-bottom:10px">💬</div>
-  <h3>Besoin d'aide ?</h3>
-  <p class="mu">Notre équipe d'assistance est disponible sur WhatsApp pour répondre à toutes vos questions concernant vos recharges, retraits ou investissements.</p>
-  <a class="btn" href="${SUPPORT}" target="_blank" rel="noopener">Contacter le support WhatsApp</a>
-</div>`
+service: () => `${back()}<h2>Service client</h2><div class="card"><p class="mu">Besoin d'aide ou d'un prêt rapide ? Contactez notre équipe directement sur WhatsApp.</p><a class="btn" href="${SUPPORT}" target="_blank" rel="noopener">Contacter sur WhatsApp</a></div>`
 };
 
-// 🛠️ ACTIONS UTILISATEUR
-window.signup = function() {
-  const name = $("n"), phone = $("ph"), pass = $("pw"), ref = $("rf");
-  if (!name || !phone || !pass) return err("Veuillez remplir tous les champs obligatoires.");
-  currentUser = { name, phone, pass, bal: 0, ref, card: null };
+window.signup = function(){
+  const name = $("n"), phone = $("ph"), pw = $("pw"), ref = $("rf") || INVITATION_CODE;
+  if(!name || !phone || !pw) return err("Veuillez remplir tous les champs obligatoires.");
+  const initialBal = ref ? REFERRAL_BONUS : 0;
+  currentUser = { name, phone, pw, bal: initialBal, ref, myCode: INVITATION_CODE, card: null };
   setStorage("ac_user", currentUser);
   go("home");
 };
 
-window.login = function() {
-  const phone = $("ph"), pass = $("pw");
-  if (!phone || !pass) return err("Veuillez entrer votre numéro et mot de passe.");
-  const saved = getStorage("ac_user", null);
-  if (saved && saved.phone === phone && saved.pass === pass) {
-    currentUser = saved;
-    go("home");
-  } else if (!saved) {
-    currentUser = { name: "Investisseur", phone, pass, bal: 0, ref: INVITATION_CODE, card: null };
+window.login = function(){
+  const phone = $("ph"), pw = $("pw");
+  if(!phone || !pw) return err("Entrez votre numéro et votre mot de passe.");
+  if(!currentUser){
+    currentUser = { name: "Investisseur", phone, pw, bal: 0, ref: INVITATION_CODE, myCode: INVITATION_CODE, card: null };
     setStorage("ac_user", currentUser);
-    go("home");
-  } else {
-    err("Numéro de téléphone ou mot de passe incorrect.");
   }
+  go("home");
 };
 
-window.logout = function() {
-  P = "login";
-  render();
+window.logout = function(){
+  currentUser = null;
+  setStorage("ac_user", null);
+  go("login");
 };
 
-window.toMethod = function() {
+window.toMethod = function(){
   const amt = Number($("a"));
-  if (!amt || amt < 1000) return err("Le montant minimum de recharge est de 1 000 F.");
-  go("method", { amt });
+  if(!amt || amt < 1000) return err("Le montant minimum est de 1 000 F.");
+  T.amt = amt;
+  go("method");
 };
 
-window.confirmPay = function() {
+window.confirmPay = function(){
   const pn = $("pn"), tx = $("tx");
-  if (!pn || !tx) return err("Veuillez renseigner votre numéro et l'ID de transaction.");
-  recs.unshift({ a: T.amt, m: `${T.m} (${pn})`, tx, t: D(), s: "En attente" });
+  if(!pn || !tx) return err("Veuillez saisir votre numéro et la référence de transaction.");
+  recs.unshift({ a: T.amt, m: T.m, pn, tx, t: D(), s: "En attente" });
   setStorage("ac_recs", recs);
-  alert("✅ Demande de recharge soumise ! Votre solde sera crédité après validation.");
-  go("home");
+  alert("✅ Demande de recharge enregistrée en attente de validation.");
+  go("histRec");
 };
 
-window.doWd = function() {
-  const amt = Number($("a")), pn = $("pn");
-  if (!amt || amt < 1000) return err("Le montant minimum de retrait est de 1 000 F.");
-  if (!pn) return err("Veuillez saisir votre numéro de réception.");
-  if (amt > currentUser.bal) return err("Solde disponible insuffisant.");
+window.confirmWithdraw = function(){
+  const amt = Number($("a")), pn = $("pn"), m = $("m");
+  if(!amt || amt < 1000) return err("Le retrait minimum est de 1 000 F.");
+  if(!pn) return err("Veuillez saisir votre numéro de réception.");
+  if(amt > U().bal) return err("Solde insuffisant.");
   currentUser.bal -= amt;
+  rets.unshift({ a: amt, m, pn, t: D(), s: "En attente" });
   setStorage("ac_user", currentUser);
-  rets.unshift({ a: amt, m: pn, t: D(), s: "En attente" });
   setStorage("ac_rets", rets);
-  alert("✅ Demande de retrait enregistrée avec succès !");
-  go("home");
+  alert("✅ Demande de retrait enregistrée.");
+  go("histRet");
 };
 
-window.buy = function(idx) {
-  const v = VIP[idx];
-  if (!v) return;
-  if (currentUser.bal < v.p) {
-    alert(`❌ Solde insuffisant (${F(currentUser.bal)}). Veuillez recharger au moins ${F(v.p)} pour acheter ce plan.`);
-    return go("recharge", { amt: v.p });
-  }
-  currentUser.bal -= v.p;
+window.saveLink = function(){
+  const holder = $("cn"), num = $("cp");
+  if(!holder || !num) return err("Veuillez remplir tous les champs.");
+  if(!currentUser) currentUser = { name: holder, phone: num, bal: 0, ref: INVITATION_CODE, myCode: INVITATION_CODE, card: null };
+  currentUser.card = { holder, num };
   setStorage("ac_user", currentUser);
+  alert("✅ Compte de retrait enregistré.");
+  go("account");
+};
+
+window.saveCard = function(){
+  const holder = $("ch"), num = $("cn");
+  if(!holder || !num) return err("Veuillez remplir tous les champs.");
+  if(!currentUser) currentUser = { name: holder, phone: "", bal: 0, ref: INVITATION_CODE, myCode: INVITATION_CODE, card: null };
+  currentUser.card = { holder, num };
+  setStorage("ac_user", currentUser);
+  alert("✅ Carte enregistrée.");
+  go("account");
+};
+
+window.buy = function(i){
+  const v = VIP[i];
+  if(!v) return;
+  if(!currentUser) currentUser = { name: "Investisseur", phone: "", bal: 0, ref: INVITATION_CODE, myCode: INVITATION_CODE, card: null };
+  if(currentUser.bal < v.p) return err(`Solde insuffisant (${F(currentUser.bal)}). Veuillez recharger votre compte.`);
+  currentUser.bal -= v.p;
   buys.unshift({ ...v, joursRestants: v.duree, t: D(), status: "Actif" });
+  setStorage("ac_user", currentUser);
   setStorage("ac_buys", buys);
-  alert(`🎉 Félicitations ! Vous avez activé "${v.n}". Revenez chaque jour réclamer vos ${F(v.jourRevenu)}.`);
+  alert(`🎉 Vous avez acheté ${v.n} (${v.product}) !`);
   go("achats");
 };
 
-window.saveCard = function() {
-  const op = $("op"), name = $("cn"), num = $("cnum");
-  if (!name || !num) return err("Veuillez remplir tous les champs.");
-  currentUser.card = { op, name, num };
-  setStorage("ac_user", currentUser);
-  alert("✅ Compte de retrait enregistré !");
-  go("card");
-};
+const tabs = [
+  ["home", "🏠", "Accueil"],
+  ["invest", "📈", "Investir"],
+  ["achats", "🛍️", "Mes sacs"],
+  ["team", "👥", "Équipe"],
+  ["account", "👤", "Compte"]
+];
 
-// 🔄 RENDU PRINCIPAL & NAVIGATION (INDEX EN BAS)
-function render() {
-  const app = document.getElementById("app");
+function render(){
+  const authPages = ["signup", "login"];
+  if(!currentUser && !authPages.includes(P)) P = "signup";
+  document.getElementById("app").innerHTML = (pages[P] || pages.home)();
   const nav = document.getElementById("nav");
-  
-  if (!currentUser && P !== "login" && P !== "signup") {
-    P = "signup";
-  }
-  if (currentUser && (P === "login" || P === "signup")) {
-    P = "home";
-  }
-
-  app.innerHTML = (pages[P] || pages.home)();
-
-  if (P === "login" || P === "signup") {
+  if(authPages.includes(P)){
     nav.style.display = "none";
   } else {
     nav.style.display = "flex";
-    const items = [
-      { id: "home", icon: "🏠", label: "Index" },
-      { id: "invest", icon: "📈", label: "Investir" },
-      { id: "achats", icon: "🛍️", label: "Mes sacs" },
-      { id: "team", icon: "👥", label: "Équipe" },
-      { id: "account", icon: "👤", label: "Compte" }
-    ];
-    nav.innerHTML = items.map(it => 
-      `<button class="${P === it.id ? 'on' : ''}" onclick="go('${it.id}')"><span>${it.icon}</span>${it.label}</button>`
-    ).join("");
+    nav.innerHTML = tabs.map(([k, ic, lb]) => `<button class="${P===k?'on':''}" onclick="go('${k}')"><span>${ic}</span>${lb}</button>`).join("");
   }
 }
 
